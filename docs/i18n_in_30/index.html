@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>I18n For CF</title>
+		
+		<link rel="stylesheet" href="../main.css" TYPE="text/css" />
+		
+	</head>
+	<body>
+		
+		<h1>Strings Internationalization API for ColdFusion</h1>
+		
+		<h2>i18n in 30 Seconds</h2>
+		<p>
+			It's just that easy - time to get your hand dirty and sling some code. 
+		</p>
+		
+		<a name="_strings_files" />
+		<h3>Strings Files</h3>
+		<p>
+			SI (strings internationalization) makes heavy use of files that are solely dedicated to
+			defining the generally static strings of your application (more to come on that).  This concept of strings abstraction certainly
+			isn't unique - in fact many other libraries and API's available in other languages do the same thing.  Many use the format of the tried and true
+			properties files (*.properties).  CF SI implements a similar concept - but in the form of cusotm .strings files (*.strings).
+		</p>
+		
+		<p>
+			These .strings files are identical in format to a properties type declaration in that each line contains a strings configuration
+			consisting of a key and a value.
+		</p>
+		
+<pre>
+my.string=Strings localization is awesome!
+</pre>
+
+		<p>
+			There are four conventions to which you must adhere in order to create a valid strings configuration;
+			<ol>
+				<li>File must end with a .strings extension.</li>
+				<li>File must be named in accordance with the locale it's meant to represent.</li>
+				<li>While your strings files can be located in any directory you like, all strings files must exist in the same directory.</li>
+				<li>
+					Each strings file must declare the same number of strings with the same <strong>keys</strong>.  Values obviously differ from one supported language to the next.  You're
+					likely to get runtime exceptions in your application if/when this rule is broken.
+				</li>
+			</ol>
+		</p>
+		
+<pre>
+en_US.strings OR
+en.strings
+</pre>
+
+		<p>
+			Both are valid strings file names.  Of course, your strings file can contain any amount of strings declarations
+			as are necessary.  Also, this file can be located anywhere you like.
+		</p>
+		
+		<p>
+			CF SI also supports string parameterization.  This is accomplished by defining "variables" that exist within your
+			string by simply surrounding them with curly-braces as such;
+		</p>
+	
+<pre>
+my.parameterized.string=Hello, your email address is {email}.
+</pre>
+
+		<p>
+			The <strong>{email}</strong> portion of the string declaration represents a value that will be provided at runtime.  Providing
+			that runtime variable is just as easy as declaring it - we'll get into that in the API sections.  For now all you need to know
+			is that any one string can have as many variables as is required.
+		</p>
+		
+		<a name="_core_interface_object_api" />
+		<h3>Core Interface / Object API</h3>
+		<p>
+			Now that you've got your strings defined, it's time to make them available to your application.  The core CF SI API is provided in
+			the form of two interfaces; <i>ILocalizedStrings</i> and <i>IStringsFactory</i>.		
+		</p>
+	
+<strong>i18n.ILocalizedStrings</strong>
+<pre>
+interface {
+
+	public string function getString(required string key, string locale);
+	public void function addString(required string key, required string locale, required string value);
+	public boolean function hasStrings();
+
+}
+</pre>
+
+<strong>i18n.IStringsFactory</strong>
+<pre>
+interface {
+
+	public LocalizedStrings function getStrings(required string directory, required string defaultLocale);
+
+}
+</pre>
+
+		<p>
+			Implementations of these interfaces are located in the i18n.impl package.  ILocalizedStrings provides the core API for working with strings in your
+			application (aside from the custom tag - which we'll get into in a moment).  IStringsFactory provides a mechanism to easy retrieve a properly initialized instance of ILocalizedStrings.
+		</p>
+		
+		<p>
+			Here's how to do exactly that!
+		</p>
+		
+<pre>
+import i18n.impl.*;
+	
+factory = new StringsFactory();
+strings = factory.getStrings(directory=expandPath("\i18n\samples\strings"), defaultLocale="en");
+</pre>
+
+		<p>
+			The resulting instance of ILocalizedStrings which is now represented in the "strings" variable is ready for you to use!
+		</p>
+		
+		<p>
+			<strong>IMPORTANT NOTE:</strong><br />
+			Initializing an object instance implementing ILocalizedStrings should be required only once during the lifetime of your application - <strong>you should
+			not reinitailize it by asking for an instance from the factory every time it's needed.  It should be treated as a singleton - proper caching
+			should be considered to avoid unecessary overhead.</strong>			
+		</p>
+		
+		<p>
+			In the strings file section of this documentation, our en.strings file contained a key of "my.string" - here's how we request it;
+		</p>
+
+<pre>
+&lt;cfoutput&gt;
+#strings.getString(key="my.string", locale="en"))#
+&lt;/cfoutput&gt;
+</pre>
+
+	<p>
+		The "locale" argument we're passing in is entirely optional when working with the default locale as configured when asking for the strings instance from the factory.  Now when
+		we want to grab the same string representing a different locale - we simply swap the locale value (assuming of course you have another locale configured for your app - such as ru.strings);
+	</p>
+	
+<pre>
+&lt;cfoutput&gt;
+#strings.getString(key="my.string", locale="ru"))#
+&lt;/cfoutput&gt;
+</pre>
+
+	<p>
+		And we should get;
+	</p>
+	
+<pre>
+Strings localization is awesome!
+</pre>
+	
+	<p>
+		Asking for parameterized strings works in the same way - except we provide values as arguments for the configured variables.  Again, using our "my.parameterized.string" definition we
+		discussed in the strings file section of the documentation, we ask for it like this;
+	</p>
+	
+<pre>
+&lt;cfoutput&gt;
+#strings.getString(key="my.string", locale="en", email="youremail@yourdomain.com"))#
+&lt;/cfoutput&gt;
+</pre>
+		
+		<p>The results;</p>
+		
+<pre>
+Hello, your email address is youremail@yourdomain.com.
+</pre>
+
+		<a name="_custom_tag_api" />
+		<h3>Custom Tag API</h3>
+		
+		<p>
+			The core interface API provides an easy to use mechanism to implement strings i18n in our application, but definitely isn't as friendly as you'd probably like when working
+			with strings in a UI template.  Well CF SI also makes this easier by providing a simple custom tag for use in just those scenarios called "string".  It can be used in the following
+			way;
+		</p>
+		
+<pre>
+&lt;cfimport taglib="/i18n/tags/" prefix="i18n" /&gt;
+
+&lt;i18n:string key="my.string" locale="en" email="youremail@yourdomain.com" /&gt;
+</pre>
+
+		<p>
+			Again, the "locale" attribute of this custom tag is entirey optional when working with the default locale.  Working with this tag requires a bit more plumbing in order to ensure
+			its correct usage - <strong>An object implementing ILocalizedStrings must exist in the application scope under the key of "strings"</strong>;
+		</p>
+		
+<pre>
+if (!isDefined("application.strings")) {
+	factory = new StringsFactory();
+	application.strings = factory.getStrings(directory=expandPath("\i18n\samples\strings"), defaultLocale="en");
+}
+
+variables.strings = application.strings;
+</pre>
+
+		<p>
+			You're done!  Now go on and save the world with your highly accessible multi-lingual killer app!
+		</p>
+
+	</body>
+</html>

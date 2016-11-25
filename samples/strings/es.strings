@@ -1,0 +1,4 @@
+hello.world=¡Hola mundo!
+welcome.message=Si usted puede leer esto, entonces you' VE internacionalizó la gerencia API de las secuencias para ColdFusion 9.
+parameterized.string=¿Hola {name}, es su email address {email}?
+disclaimer=Estos archivos de las secuencias fueron traducidos usando BabelFish y representan de ninguna manera traducciones de lengua exactas.

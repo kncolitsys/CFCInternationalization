@@ -1,0 +1,4 @@
+hello.world=여보세요 세계
+welcome.message=당신이 이것을 읽을 수 있는 경우에, 당신은 성공적으로 를 설치했다 는 ColdFusion 9.를 위한 끈 관리 API를 국제화했다.
+parameterized.string=여보세요 {name}, 당신의 이메일 주소 {email} 인가?
+disclaimer=이 끈 파일은 BabelFish를 사용하여 번역되고 결코 정확한 언어 번역을 대표하지 않는다.

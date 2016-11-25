@@ -1,0 +1,15 @@
+body {
+	font: 1em calibri, verdana, arial, helvetica, sans-serif;
+}
+
+pre {
+   display: block;
+   white-space: pre;
+   border: 3px dotted #ccc;
+   background: #e5e5e5;
+   padding: 1em 1em 1em 1em;
+}
+
+.smallprint {
+	font-size: 10px;
+}
